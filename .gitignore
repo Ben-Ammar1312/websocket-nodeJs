@@ -19,3 +19,5 @@ logs/
 .DS_Store  # macOS
 Thumbs.db  # Windows
 .vscode/  # If using VS Code
+
+classDiag.drawio
