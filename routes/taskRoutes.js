@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
-const Task = require('../models/task');
+const Task = require('../database/models/task');
 
 // Helper function to validate task status
 const isValidStatus = (status) => ['in progress', 'completed', 'cancelled'].includes(status);
