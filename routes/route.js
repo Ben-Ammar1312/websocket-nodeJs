@@ -9,6 +9,6 @@ router.post("/signup", createUser);
 router.post("/login", login);
 router.get("/logout", (req, res) => {
     res.clearCookie("token");
-    res.json({ message: "Logged out" });
+    res.redirect("/api/login.html");
 });
 module.exports = router;

@@ -1,51 +1,50 @@
 const User = require("../database/models/user");
-
 const { createSecretToken } = require("../tokenGeneration/generateToken");
 const bcrypt = require("bcrypt");
 
 const createUser = async (req, res) => {
     try {
-        if (
-            !(
-                req.body.email &&
-                req.body.password &&
-                req.body.name &&
-                req.body.username
-            )
-        ) {
-            res.status(400).send("All input is required");
+        const { name, username, email, password } = req.body;
+
+        if (!name || !username || !email || !password) {
+            return res.status(400).json({ message: "All fields are required" });
         }
 
-        const oldUser = await User.findOne({ email: req.body.email });
+        const existingUser = await User.findOne({ email });
 
-        if (oldUser) {
-            return res.status(409).send("User Already Exist. Please Login");
+        if (existingUser) {
+            return res.status(409).json({ message: "User already exists. Please login." });
         }
-        const salt = 10;
-        const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         const newUser = new User({
-            name: req.body.name,
-
-            username: req.body.username,
-            email: req.body.email,
+            name,
+            username,
+            email,
             password: hashedPassword,
         });
-        const user = await newUser.save();
-        const token = createSecretToken(user._id);
+
+        const savedUser = await newUser.save();
+        const token = createSecretToken(savedUser._id);
 
         res.cookie("token", token, {
-            path: "/", // Cookie is accessible from all paths
-            expires: new Date(Date.now() + 86400000), // Cookie expires in 1 day
-            secure: true, // Cookie will only be sent over HTTPS
-            httpOnly: true, // Cookie cannot be accessed via client-side scripts
+            path: "/",
+            expires: new Date(Date.now() +  3 * 24 * 60 * 60 * 1000),
+            secure: true,
+            httpOnly: true,
             sameSite: "None",
         });
 
-        console.log("cookie set succesfully");
+        console.log("User created successfully");
 
-        res.json(user);
+        res.status(201).json({ user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
+
     } catch (error) {
-        console.log("Gott an error", error);
+        console.error("Signup error:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
+
 module.exports = createUser;
