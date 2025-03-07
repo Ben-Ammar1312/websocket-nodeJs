@@ -21,6 +21,11 @@
 <h1>Task List (Live Updates)</h1>
 
 <div class="container">
+  <!-- Notification Section -->
+  <div class="notifications">
+    <h2>Notifications</h2>
+    <ul id="notificationList"></ul>
+  </div>
   <!-- Add Task Card -->
   <div class="card">
     <label>Add a Task</label>
@@ -60,9 +65,18 @@
       socket.on("taskCreated", (task) => updateTaskList(task, "created"));
       socket.on("taskUpdated", (task) => updateTaskList(task, "updated"));
       socket.on("taskDeleted", (taskId) => updateTaskList({ _id: taskId }, "deleted"));
+      socket.on("notification", (data) => displayNotification(data.message));
     }
   }
+  function displayNotification(message) {
+    const notificationList = document.getElementById("notificationList");
+    const li = document.createElement("li");
+    li.textContent = message;
+    notificationList.appendChild(li);
 
+    // Auto-remove notifications after 5 seconds
+    setTimeout(() => li.remove(), 5000);
+  }
   function updateTaskList(task, action) {
     console.log(`Task ${action}:`, task);
     const taskList = document.getElementById("taskList");
