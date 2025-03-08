@@ -41,30 +41,38 @@ router.post('/', async (req, res) => {
 });
 
 // Update Task
-router.put('/:id', async (req, res) => {
+router.put('/:id/status', async (req, res) => {
     try {
+        const { status } = req.body;
+
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({ message: "Invalid Task ID" });
         }
 
-        if (!req.body.title) {
-            return res.status(400).json({ message: "Task title is required" });
+        if (!isValidStatus(status)) {
+            return res.status(400).json({ message: "Invalid status" });
         }
 
-        const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true, runValidators: true }
+        );
+
         if (!updatedTask) return res.status(404).json({ message: "Task not found" });
 
         if (global.io) {
             global.io.emit('taskUpdated', updatedTask);
-            global.io.emit('notification', { message: `Task updated: ${updatedTask.title}` }); // 🔹 Notification event
+            global.io.emit('notification', { message: `Task status updated: ${updatedTask.title} -> ${status}` });
         }
 
         res.status(200).json(updatedTask);
     } catch (error) {
-        console.error("Error updating task:", error);
+        console.error("Error updating task status:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
 
 // Delete Task
 router.delete('/:id', async (req, res) => {

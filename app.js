@@ -1,4 +1,4 @@
-require('dotenv').config(); // ✅ Load environment variables first
+require('dotenv').config(); 
 
 const express = require('express');
 const path = require('path');
@@ -10,20 +10,20 @@ const authRoute = require("./routes/route");
 const http = require('http');
 const { Server } = require('socket.io');
 const verifyToken = require("./middlewares/authMiddleware");
-// 🔹 Initialize Express App
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// 🔹 Connect to Database
+
 connectDB();
 
-// 🔹 Middleware
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-// 🔹 Auth Check Route (Ensures WebSocket starts only for logged-in users)
+
 app.get("/api/auth-check", (req, res) => {
     if (req.cookies && req.cookies.token) {
         return res.json({ authenticated: true });
@@ -35,8 +35,23 @@ app.get("/", verifyToken, (req, res) => {
     res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
+app.get('/api/tasks/stats', async (req, res) => {
+    try {
+        const totalTasks = await Task.countDocuments();
+        const inProgress = await Task.countDocuments({ status: 'in progress' });
+        const completed = await Task.countDocuments({ status: 'completed' });
 
-// 🔹 CORS Middleware
+        res.json({ totalTasks, inProgress, completed });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching task stats", error });
+    }
+});
+
+
+
+
+
+
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL);
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
@@ -45,13 +60,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// 🔹 Routes
+
 const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
 app.use('/api/tasks', taskRoutes);
 app.use('/api', authRoute);
 
-// 🔹 Create HTTP & WebSocket Server (after initializing `app`)
+
 const server = http.createServer(app);
 global.io = new Server(server, {
     cors: {
@@ -60,7 +75,7 @@ global.io = new Server(server, {
     }
 });
 
-// 🔹 WebSocket Connection
+
 global.io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
     socket.on("disconnect", () => {
@@ -68,10 +83,10 @@ global.io.on("connection", (socket) => {
     });
 });
 
-// 🔹 Start Server
+
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-// 🔹 Export app and WebSocket server
+
 module.exports = { app };
