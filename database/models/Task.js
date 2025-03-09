@@ -8,7 +8,11 @@ const taskSchema = new mongoose.Schema({
         enum: ["in progress", "completed", "cancelled"],
         default: "in progress"
     },
-    createdAt: { type: Date, default: Date.now, immutable: true }
+    createdAt: { type: Date, default: Date.now, immutable: true },
+    assignedUser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 });
 
 module.exports = mongoose.model("Task", taskSchema);

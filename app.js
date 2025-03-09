@@ -10,6 +10,7 @@ const authRoute = require("./routes/route");
 const http = require('http');
 const { Server } = require('socket.io');
 const verifyToken = require("./middlewares/authMiddleware");
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -35,17 +36,7 @@ app.get("/", verifyToken, (req, res) => {
     res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-app.get('/api/tasks/stats', async (req, res) => {
-    try {
-        const totalTasks = await Task.countDocuments();
-        const inProgress = await Task.countDocuments({ status: 'in progress' });
-        const completed = await Task.countDocuments({ status: 'completed' });
 
-        res.json({ totalTasks, inProgress, completed });
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching task stats", error });
-    }
-});
 
 
 
@@ -65,7 +56,7 @@ const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
 app.use('/api/tasks', taskRoutes);
 app.use('/api', authRoute);
-
+app.use('/api/users', userRoutes);
 
 const server = http.createServer(app);
 global.io = new Server(server, {
