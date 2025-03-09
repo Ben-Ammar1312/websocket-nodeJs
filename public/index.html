@@ -13,7 +13,7 @@
     ul { list-style-type: none; padding: 0; }
     li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 5px; }
     .deleted { text-decoration: line-through; color: red; }
-    input, button { margin: 5px; padding: 8px; width: 90%; }
+    input, button, select { margin: 5px; padding: 8px; width: 90%; }
     label { font-weight: bold; display: block; margin-bottom: 5px; }
   </style>
 </head>
@@ -26,6 +26,7 @@
     <h2>Notifications</h2>
     <ul id="notificationList"></ul>
   </div>
+
   <!-- Add Task Card -->
   <div class="card">
     <label>Add a Task</label>
@@ -40,6 +41,11 @@
     <input type="text" id="updateTaskId" placeholder="Task ID">
     <input type="text" id="updateTaskTitle" placeholder="New Task Title">
     <input type="text" id="updateTaskDesc" placeholder="New Task Description (optional)">
+    <select id="updateTaskStatus">
+      <option value="in progress">In Progress</option>
+      <option value="completed">Completed</option>
+      <option value="not started">Not Started</option>
+    </select>
     <button onclick="updateTask()">Update Task</button>
   </div>
 
@@ -68,6 +74,7 @@
       socket.on("notification", (data) => displayNotification(data.message));
     }
   }
+
   function displayNotification(message) {
     const notificationList = document.getElementById("notificationList");
     const li = document.createElement("li");
@@ -77,6 +84,7 @@
     // Auto-remove notifications after 5 seconds
     setTimeout(() => li.remove(), 5000);
   }
+
   function updateTaskList(task, action) {
     console.log(`Task ${action}:`, task);
     const taskList = document.getElementById("taskList");
@@ -151,6 +159,7 @@
     const taskId = document.getElementById("updateTaskId").value;
     const taskTitle = document.getElementById("updateTaskTitle").value;
     const taskDesc = document.getElementById("updateTaskDesc").value;
+    const taskStatus = document.getElementById("updateTaskStatus").value;
 
     if (!taskId || !taskTitle) {
       return alert("Enter task ID and new title");
@@ -159,7 +168,7 @@
     fetch(`/api/tasks/${taskId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: taskTitle, description: taskDesc })
+      body: JSON.stringify({ title: taskTitle, description: taskDesc, status: taskStatus })
     })
             .then(res => res.json())
             .then(task => {

@@ -10,64 +10,37 @@ exports.createTask = async (req, res) => {
 
         // Créer une notification
         const notification = await Notification.create({
-            message: `Nouvelle tâche ajoutée: ${newTask.title}`,
-            taskId: newTask._id,
+            message: `Nouvelle tâche ajoutée: ${title}`,
         });
 
-        // Envoyer la notification en temps réel
-        io.emit("receiveNotification", notification);
+        io.emit("taskCreated", newTask);
+        io.emit("notification", notification);
 
-        res.status(201).json({ message: "Tâche créée avec succès", task: newTask });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", error });
+        res.status(201).json(newTask);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error creating task");
     }
 };
 
-// 📌 Mettre à jour une tâche et notifier
+// 📌 Mettre à jour une tâche et envoyer une notification
 exports.updateTask = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { taskId } = req.params;
         const { title, description, status } = req.body;
 
-        const updatedTask = await Task.findByIdAndUpdate(id, { title, description, status }, { new: true });
+        const task = await Task.findByIdAndUpdate(taskId, { title, description, status }, { new: true });
 
-        if (!updatedTask) return res.status(404).json({ message: "Tâche non trouvée" });
-
-        // Créer une notification
         const notification = await Notification.create({
-            message: `Tâche mise à jour: ${updatedTask.title}`,
-            taskId: updatedTask._id,
+            message: `Tâche mise à jour: ${task.title}`,
         });
 
-        // Envoyer la notification
-        io.emit("receiveNotification", notification);
+        io.emit("taskUpdated", task);
+        io.emit("notification", notification);
 
-        res.json({ message: "Tâche mise à jour", task: updatedTask });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", error });
-    }
-};
-
-// 📌 Supprimer une tâche et notifier
-exports.deleteTask = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const deletedTask = await Task.findByIdAndDelete(id);
-
-        if (!deletedTask) return res.status(404).json({ message: "Tâche non trouvée" });
-
-        // Créer une notification
-        const notification = await Notification.create({
-            message: `Tâche supprimée: ${deletedTask.title}`,
-            taskId: deletedTask._id,
-        });
-
-        // Envoyer la notification
-        io.emit("receiveNotification", notification);
-
-        res.json({ message: "Tâche supprimée", task: deletedTask });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", error });
+        res.status(200).json(task);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error updating task");
     }
 };
