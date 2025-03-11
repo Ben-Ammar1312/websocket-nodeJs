@@ -16,7 +16,7 @@ router.get('/dashboard', (req, res) => {
 
 
 
-router.get('/api/tasks/totalTasks', async (req, res) => {
+router.get('/totalTasks', async (req, res) => {
     try {
         const tasks = await Task.find();
         res.json(tasks);
@@ -27,7 +27,7 @@ router.get('/api/tasks/totalTasks', async (req, res) => {
 });
 
 // Route pour récupérer les tâches en cours
-router.get('/api/tasks/inProgress', async (req, res) => {
+router.get('/inProgress', async (req, res) => {
     try {
         const tasks = await Task.find({ status: 'in progress' });
         res.json(tasks);
@@ -39,7 +39,7 @@ router.get('/api/tasks/inProgress', async (req, res) => {
 
 
 // Route pour récupérer les tâches complétées
-router.get('/api/tasks/completed', async (req, res) => {
+router.get('/completed', async (req, res) => {
     try {
         const tasks = await Task.find({ status: 'completed' });
         res.json(tasks);
